@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  */
 
-package src.simuladorerrosnumericos;
+package simuladorerrosnumericos;
 
 /**
  *
@@ -11,6 +11,7 @@ package src.simuladorerrosnumericos;
 public class SimuladorErrosNumericos {
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        Menu menu = new Menu();
+        menu.iniciar();
     }
 }
