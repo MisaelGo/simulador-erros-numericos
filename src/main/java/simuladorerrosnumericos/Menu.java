@@ -1,6 +1,5 @@
 package simuladorerrosnumericos;
 
-import java.nio.charset.StandardCharsets;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -8,10 +7,14 @@ public class Menu {
 
     private final Scanner scanner;
     private final Calculadora calculadora;
+    private final PrecisaoNumerica precisaoNumerica;
+    private final CalculadoraErro calculadoraErro;
 
     public Menu() {
         scanner = new Scanner(System.in);
         calculadora = new Calculadora();
+        precisaoNumerica = new PrecisaoNumerica();
+        calculadoraErro = new CalculadoraErro();
     }
 
     public void iniciar() {
@@ -28,32 +31,65 @@ public class Menu {
                 double y = lerDouble("Digite o valor de y: ");
 
                 int operacao = lerOperacao();
-
                 int digitos = lerDigitosSignificativos();
-
                 int metodo = lerMetodoPrecisao();
 
-                double resultado = realizarOperacaoComTratamento(
+                /*
+                 * 1. Calcula o resultado exato
+                 */
+                double resultadoExato = realizarOperacaoComTratamento(
                         x,
                         y,
                         operacao
                 );
 
-                System.out.println("\n=== RESULTADO ===");
-                System.out.println("Resultado exato: " + resultado);
-                System.out.println(
-                        "Dígitos significativos: " + digitos
-                );
+                /*
+                 * 2. Aplica truncamento ou arredondamento
+                 *    apenas ao resultado da operação.
+                 *
+                 * Enquanto PrecisaoNumerica não estiver
+                 * implementada, será retornado NaN.
+                 */
+                double resultadoAproximado =
+                        precisaoNumerica.ajustarPrecisao(
+                                resultadoExato,
+                                digitos,
+                                metodo
+                        );
 
-                if (metodo == 1) {
-                    System.out.println(
-                            "Método escolhido: Truncamento"
-                    );
-                } else {
-                    System.out.println(
-                            "Método escolhido: Arredondamento"
-                    );
+                double erroAbsoluto = Double.NaN;
+                double erroRelativo = Double.NaN;
+
+                /*
+                 * 3. Calcula os erros apenas se já houver
+                 *    um resultado aproximado válido.
+                 */
+                if (!Double.isNaN(resultadoAproximado)) {
+
+                    erroAbsoluto =
+                            calculadoraErro.erroAbsoluto(
+                                    resultadoExato,
+                                    resultadoAproximado
+                            );
+
+                    erroRelativo =
+                            calculadoraErro.erroRelativo(
+                                    resultadoExato,
+                                    resultadoAproximado
+                            );
                 }
+
+                /*
+                 * 4. Exibe os resultados
+                 */
+                exibirResultado(
+                        resultadoExato,
+                        resultadoAproximado,
+                        erroAbsoluto,
+                        erroRelativo,
+                        digitos,
+                        metodo
+                );
 
                 continuar = perguntarSeContinua();
             }
@@ -71,9 +107,11 @@ public class Menu {
                 return scanner.nextDouble();
 
             } catch (InputMismatchException e) {
+
                 System.out.println(
                         "Entrada inválida. Digite um número válido."
                 );
+
                 scanner.nextLine();
             }
         }
@@ -88,9 +126,11 @@ public class Menu {
                 return scanner.nextInt();
 
             } catch (InputMismatchException e) {
+
                 System.out.println(
                         "Entrada inválida. Digite um número inteiro."
                 );
+
                 scanner.nextLine();
             }
         }
@@ -165,13 +205,19 @@ public class Menu {
         while (true) {
 
             try {
-                return realizarOperacao(x, y, operacao);
+
+                return realizarOperacao(
+                        x,
+                        y,
+                        operacao
+                );
 
             } catch (ArithmeticException e) {
 
                 System.out.println(e.getMessage());
 
                 if (operacao == 4) {
+
                     y = lerDouble(
                             "Digite novamente o valor de y: "
                     );
@@ -202,11 +248,85 @@ public class Menu {
         };
     }
 
+    private void exibirResultado(
+            double resultadoExato,
+            double resultadoAproximado,
+            double erroAbsoluto,
+            double erroRelativo,
+            int digitos,
+            int metodo
+    ) {
+
+        System.out.println("\n=== RESULTADO ===");
+
+        System.out.println(
+                "Resultado exato: " + resultadoExato
+        );
+
+        System.out.println(
+                "Dígitos significativos: " + digitos
+        );
+
+        if (metodo == 1) {
+            System.out.println(
+                    "Método escolhido: Truncamento"
+            );
+        } else {
+            System.out.println(
+                    "Método escolhido: Arredondamento"
+            );
+        }
+
+        if (Double.isNaN(resultadoAproximado)) {
+
+            System.out.println(
+                    "\nResultado aproximado: aguardando implementação."
+            );
+
+            System.out.println(
+                    "Erro absoluto: aguardando implementação."
+            );
+
+            System.out.println(
+                    "Erro relativo: aguardando implementação."
+            );
+
+            return;
+        }
+
+        System.out.println(
+                "Resultado aproximado: " + resultadoAproximado
+        );
+
+        if (!Double.isNaN(erroAbsoluto)) {
+            System.out.println(
+                    "Erro absoluto: " + erroAbsoluto
+            );
+        } else {
+            System.out.println(
+                    "Erro absoluto: aguardando implementação."
+            );
+        }
+
+        if (!Double.isNaN(erroRelativo)) {
+            System.out.println(
+                    "Erro relativo: " + erroRelativo
+            );
+        } else {
+            System.out.println(
+                    "Erro relativo: aguardando implementação."
+            );
+        }
+    }
+
     private boolean perguntarSeContinua() {
 
         while (true) {
 
-            System.out.println("\nDeseja realizar outro cálculo?");
+            System.out.println(
+                    "\nDeseja realizar outro cálculo?"
+            );
+
             System.out.println("1 - Sim");
             System.out.println("2 - Não");
 
