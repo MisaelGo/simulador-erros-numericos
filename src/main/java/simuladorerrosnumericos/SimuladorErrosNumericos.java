@@ -1,17 +1,17 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- */
-
 package simuladorerrosnumericos;
 
 /**
- *
- * @author misa2
+ * Classe principal da aplicação.
  */
 public class SimuladorErrosNumericos {
 
+    /**
+     * Inicia o menu do simulador.
+     */
     public static void main(String[] args) {
+
         Menu menu = new Menu();
+
         menu.iniciar();
     }
 }
