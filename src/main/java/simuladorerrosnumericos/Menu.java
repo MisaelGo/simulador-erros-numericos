@@ -14,13 +14,21 @@ public class Menu {
     private final CalculadoraErro calculadoraErro;
 
     /**
-     * Inicializa as dependências usadas pelo menu.
+     * Inicializa as classes utilizadas pelo menu.
      */
     public Menu() {
-        scanner = new Scanner(System.in);
-        calculadora = new Calculadora();
-        precisaoNumerica = new PrecisaoNumerica();
-        calculadoraErro = new CalculadoraErro();
+
+        scanner =
+                new Scanner(System.in);
+
+        calculadora =
+                new Calculadora();
+
+        precisaoNumerica =
+                new PrecisaoNumerica();
+
+        calculadoraErro =
+                new CalculadoraErro();
     }
 
     /**
@@ -38,7 +46,6 @@ public class Menu {
                         "\n=== SIMULADOR DE PROPAGAÇÃO DE ERROS ==="
                 );
 
-                // Lê os dois operandos.
                 double x =
                         lerDouble(
                                 "Digite o valor de x: "
@@ -49,9 +56,26 @@ public class Menu {
                                 "Digite o valor de y: "
                         );
 
-                // Lê as opções da simulação.
                 int operacao =
                         lerOperacao();
+
+                /*
+                 * Evita divisão exata por zero.
+                 */
+                if (operacao == 4) {
+
+                    while (y == 0.0) {
+
+                        System.out.println(
+                                "Não é possível dividir por zero."
+                        );
+
+                        y =
+                                lerDouble(
+                                        "Digite novamente o valor de y: "
+                                );
+                    }
+                }
 
                 int casasDecimais =
                         lerCasasDecimais();
@@ -59,48 +83,95 @@ public class Menu {
                 int metodo =
                         lerMetodoPrecisao();
 
-                // Calcula o resultado sem limitar a precisão.
+                /*
+                 * Resultado de referência com
+                 * os valores originais.
+                 */
                 double resultadoExato =
-                        realizarOperacaoComTratamento(
+                        realizarOperacao(
                                 x,
                                 y,
                                 operacao
                         );
 
-                // Gera a forma normalizada do resultado.
                 String resultadoNormalizado =
                         precisaoNumerica
                                 .formatarNotacaoCientifica(
-                                        resultadoExato
+                                        resultadoExato,
+                                        casasDecimais
                                 );
 
                 /*
-                 * No fluxo comum, a precisão é aplicada
-                 * depois da operação.
+                 * Aplica a precisão aos operandos
+                 * antes da operação aproximada.
                  */
-                double resultadoAproximado =
+                double xAproximado =
                         precisaoNumerica
                                 .ajustarPrecisao(
-                                        resultadoExato,
+                                        x,
                                         casasDecimais,
                                         metodo
                                 );
 
-                // Calcula os erros do resultado aproximado.
-                double erroAbsoluto =
-                        calculadoraErro.erroAbsoluto(
-                                resultadoExato,
-                                resultadoAproximado
-                        );
+                double yAproximado =
+                        precisaoNumerica
+                                .ajustarPrecisao(
+                                        y,
+                                        casasDecimais,
+                                        metodo
+                                );
 
-                double erroRelativo =
-                        calculadoraErro.erroRelativo(
-                                resultadoExato,
-                                resultadoAproximado
-                        );
+                double resultadoAproximado;
+                double erroAbsoluto;
+                double erroRelativo;
 
-                // Mostra todas as informações da operação.
+                /*
+                 * O divisor pode se tornar zero
+                 * depois da aproximação.
+                 */
+                if (operacao == 4
+                        && yAproximado == 0.0) {
+
+                    resultadoAproximado =
+                            Double.NaN;
+
+                    erroAbsoluto =
+                            Double.NaN;
+
+                    erroRelativo =
+                            Double.NaN;
+
+                } else {
+
+                    /*
+                     * Opera utilizando os valores
+                     * já aproximados.
+                     */
+                    resultadoAproximado =
+                            realizarOperacao(
+                                    xAproximado,
+                                    yAproximado,
+                                    operacao
+                            );
+
+                    erroAbsoluto =
+                            calculadoraErro
+                                    .erroAbsoluto(
+                                            resultadoExato,
+                                            resultadoAproximado
+                                    );
+
+                    erroRelativo =
+                            calculadoraErro
+                                    .erroRelativo(
+                                            resultadoExato,
+                                            resultadoAproximado
+                                    );
+                }
+
                 exibirResultado(
+                        xAproximado,
+                        yAproximado,
                         resultadoExato,
                         resultadoNormalizado,
                         resultadoAproximado,
@@ -110,7 +181,6 @@ public class Menu {
                         metodo
                 );
 
-                // Permite realizar novos cálculos sem reiniciar.
                 continuar =
                         perguntarSeContinua();
             }
@@ -122,8 +192,7 @@ public class Menu {
     }
 
     /**
-     * Lê um número real e repete somente este campo
-     * caso a entrada seja inválida.
+     * Lê um número real.
      */
     private double lerDouble(
             String mensagem
@@ -131,17 +200,21 @@ public class Menu {
 
         while (true) {
 
-            System.out.print(mensagem);
+            System.out.print(
+                    mensagem
+            );
 
             /*
-             * Permite usar tanto vírgula quanto ponto
+             * Permite ponto ou vírgula
              * como separador decimal.
              */
             String entrada =
-                    scanner.next()
+                    scanner
+                            .next()
                             .replace(',', '.');
 
             try {
+
                 return Double.parseDouble(
                         entrada
                 );
@@ -156,8 +229,7 @@ public class Menu {
     }
 
     /**
-     * Lê um número inteiro e repete somente este campo
-     * caso a entrada seja inválida.
+     * Lê um número inteiro.
      */
     private int lerInteiro(
             String mensagem
@@ -165,12 +237,15 @@ public class Menu {
 
         while (true) {
 
-            System.out.print(mensagem);
+            System.out.print(
+                    mensagem
+            );
 
             String entrada =
                     scanner.next();
 
             try {
+
                 return Integer.parseInt(
                         entrada
                 );
@@ -185,7 +260,7 @@ public class Menu {
     }
 
     /**
-     * Solicita uma das quatro operações disponíveis.
+     * Solicita a operação desejada.
      */
     private int lerOperacao() {
 
@@ -195,13 +270,26 @@ public class Menu {
                     "\nEscolha a operação:"
             );
 
-            System.out.println("1 - Soma");
-            System.out.println("2 - Subtração");
-            System.out.println("3 - Multiplicação");
-            System.out.println("4 - Divisão");
+            System.out.println(
+                    "1 - Soma"
+            );
+
+            System.out.println(
+                    "2 - Subtração"
+            );
+
+            System.out.println(
+                    "3 - Multiplicação"
+            );
+
+            System.out.println(
+                    "4 - Divisão"
+            );
 
             int operacao =
-                    lerInteiro("Opção: ");
+                    lerInteiro(
+                            "Opção: "
+                    );
 
             if (operacao >= 1
                     && operacao <= 4) {
@@ -216,7 +304,7 @@ public class Menu {
     }
 
     /**
-     * Lê a quantidade de casas decimais desejada.
+     * Solicita a quantidade de casas decimais.
      */
     private int lerCasasDecimais() {
 
@@ -228,6 +316,7 @@ public class Menu {
                     );
 
             if (casasDecimais >= 0) {
+
                 return casasDecimais;
             }
 
@@ -238,7 +327,7 @@ public class Menu {
     }
 
     /**
-     * Solicita o método de ajuste da precisão.
+     * Solicita truncamento ou arredondamento.
      */
     private int lerMetodoPrecisao() {
 
@@ -257,7 +346,9 @@ public class Menu {
             );
 
             int metodo =
-                    lerInteiro("Opção: ");
+                    lerInteiro(
+                            "Opção: "
+                    );
 
             if (metodo == 1
                     || metodo == 2) {
@@ -272,46 +363,7 @@ public class Menu {
     }
 
     /**
-     * Executa a operação e trata divisão por zero.
-     */
-    private double realizarOperacaoComTratamento(
-            double x,
-            double y,
-            int operacao
-    ) {
-
-        while (true) {
-
-            try {
-
-                return realizarOperacao(
-                        x,
-                        y,
-                        operacao
-                );
-
-            } catch (ArithmeticException e) {
-
-                System.out.println(
-                        e.getMessage()
-                );
-
-                /*
-                 * Em uma divisão inválida, solicita
-                 * somente um novo valor para y.
-                 */
-                if (operacao == 4) {
-
-                    y = lerDouble(
-                            "Digite novamente o valor de y: "
-                    );
-                }
-            }
-        }
-    }
-
-    /**
-     * Encaminha a operação escolhida para Calculadora.
+     * Realiza a operação selecionada.
      */
     private double realizarOperacao(
             double x,
@@ -353,9 +405,11 @@ public class Menu {
     }
 
     /**
-     * Exibe os resultados e os erros calculados.
+     * Exibe os resultados da simulação.
      */
     private void exibirResultado(
+            double xAproximado,
+            double yAproximado,
             double resultadoExato,
             String resultadoNormalizado,
             double resultadoAproximado,
@@ -370,16 +424,6 @@ public class Menu {
         );
 
         System.out.println(
-                "Resultado exato: "
-                + resultadoExato
-        );
-
-        System.out.println(
-                "Resultado normalizado: "
-                + resultadoNormalizado
-        );
-
-        System.out.println(
                 "Casas decimais: "
                 + casasDecimais
         );
@@ -390,17 +434,81 @@ public class Menu {
         );
 
         System.out.println(
-                "Resultado aproximado: "
-                + resultadoAproximado
+                "x aproximado: "
+                + precisaoNumerica
+                        .formatarResultado(
+                                xAproximado,
+                                casasDecimais
+                        )
         );
 
         System.out.println(
-                "Erro absoluto: "
-                + erroAbsoluto
+                "y aproximado: "
+                + precisaoNumerica
+                        .formatarResultado(
+                                yAproximado,
+                                casasDecimais
+                        )
         );
 
-        // Evita exibir um valor inválido quando o divisor é zero.
-        if (Double.isNaN(erroRelativo)) {
+        System.out.println(
+                "Resultado exato: "
+                + precisaoNumerica
+                        .formatarResultado(
+                                resultadoExato,
+                                casasDecimais
+                        )
+        );
+
+        System.out.println(
+                "Resultado normalizado: "
+                + resultadoNormalizado
+        );
+
+        /*
+         * Trata divisão indefinida após
+         * a aproximação do divisor.
+         */
+        if (Double.isNaN(
+                resultadoAproximado
+        )) {
+
+            System.out.println(
+                    "Resultado aproximado: não definido"
+            );
+
+            System.out.println(
+                    "Erro absoluto: não definido"
+            );
+
+            System.out.println(
+                    "Erro relativo: não definido"
+            );
+
+            return;
+        }
+
+        System.out.println(
+                "Resultado aproximado: "
+                + precisaoNumerica
+                        .formatarResultado(
+                                resultadoAproximado,
+                                casasDecimais
+                        )
+        );
+
+        System.out.println(
+                    "Erro absoluto: "
+                    + precisaoNumerica
+                            .formatarResultado(
+                                    erroAbsoluto,
+                                    5
+                        )
+        );
+
+        if (Double.isNaN(
+                erroRelativo
+        )) {
 
             System.out.println(
                     "Erro relativo: não definido "
@@ -411,18 +519,24 @@ public class Menu {
 
             System.out.println(
                     "Erro relativo: "
-                    + erroRelativo
+                    + precisaoNumerica
+                            .formatarResultado(
+                                    erroRelativo,
+                                    casasDecimais
+                            )
             );
 
             System.out.printf(
-                    "Erro relativo em porcentagem: %.4f%%%n",
+                    "Erro relativo em porcentagem: %."
+                    + casasDecimais
+                    + "f%%%n",
                     erroRelativo * 100
             );
         }
     }
 
     /**
-     * Retorna o nome do método de precisão selecionado.
+     * Retorna o nome do método escolhido.
      */
     private String nomeMetodo(
             int metodo
@@ -434,7 +548,7 @@ public class Menu {
     }
 
     /**
-     * Pergunta se o usuário deseja realizar outro cálculo.
+     * Pergunta se será feito outro cálculo.
      */
     private boolean perguntarSeContinua() {
 
@@ -444,11 +558,18 @@ public class Menu {
                     "\nDeseja realizar outro cálculo?"
             );
 
-            System.out.println("1 - Sim");
-            System.out.println("2 - Não");
+            System.out.println(
+                    "1 - Sim"
+            );
+
+            System.out.println(
+                    "2 - Não"
+            );
 
             int resposta =
-                    lerInteiro("Opção: ");
+                    lerInteiro(
+                            "Opção: "
+                    );
 
             if (resposta == 1) {
                 return true;

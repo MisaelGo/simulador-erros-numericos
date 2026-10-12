@@ -1,23 +1,27 @@
-
 package simuladorerrosnumericos;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 /**
- * Controla a precisão numérica por quantidade de algarismos significativos
- * e representa valores em notação científica.
+ * Controla truncamento, arredondamento
+ * e representação em notação científica.
  */
 public class PrecisaoNumerica {
 
     /**
-     * Representa um número na forma mantissa x 10^expoente.
+     * Representa um número na forma:
+     * mantissa x 10^expoente.
      */
     public static class NotacaoCientifica {
+
         private final double mantissa;
         private final int expoente;
 
-        public NotacaoCientifica(double mantissa, int expoente) {
+        public NotacaoCientifica(
+                double mantissa,
+                int expoente
+        ) {
             this.mantissa = mantissa;
             this.expoente = expoente;
         }
@@ -32,121 +36,249 @@ public class PrecisaoNumerica {
     }
 
     /**
-     * Normaliza um valor para a forma mantissa x 10^expoente.
-     * Exemplo: 123.45 = 0.12345 x 10^3.
+     * Normaliza segundo a forma usada no trabalho:
+     * 123.45 = 0.12345 x 10^3.
      */
-    public NotacaoCientifica normalizar(double valor) {
+    public NotacaoCientifica normalizar(
+            double valor
+    ) {
+
         validarValorFinito(valor);
 
         if (valor == 0.0) {
-            return new NotacaoCientifica(0.0, 0);
+
+            return new NotacaoCientifica(
+                    0.0,
+                    0
+            );
         }
 
-        // precision - scale determina o expoente decimal do valor.
-        BigDecimal decimal = BigDecimal.valueOf(valor);
-        int expoente = decimal.precision() - decimal.scale();
+        BigDecimal decimal =
+                BigDecimal.valueOf(valor);
 
-        double mantissa = decimal
-                .scaleByPowerOfTen(-expoente)
-                .doubleValue();
+        int expoente =
+                decimal.precision()
+                - decimal.scale();
 
-        return new NotacaoCientifica(mantissa, expoente);
+        double mantissa =
+                decimal
+                        .scaleByPowerOfTen(
+                                -expoente
+                        )
+                        .doubleValue();
+
+        return new NotacaoCientifica(
+                mantissa,
+                expoente
+        );
     }
 
     /**
-     * Converte o valor para uma String legível em notação científica.
+     * Formata um valor em notação científica
+     * usando a quantidade de casas informada.
      */
-    public String formatarNotacaoCientifica(double valor) {
-        NotacaoCientifica nc = normalizar(valor);
+    public String formatarNotacaoCientifica(
+            double valor,
+            int casasDecimais
+    ) {
 
-        String mantissaFormatada = BigDecimal
-                .valueOf(nc.getMantissa())
-                .stripTrailingZeros()
-                .toPlainString();
+        validarCasasDecimais(
+                casasDecimais
+        );
 
-        return mantissaFormatada + " x 10^" + nc.getExpoente();
+        if (valor == 0.0) {
+
+            return BigDecimal.ZERO
+                    .setScale(casasDecimais)
+                    .toPlainString()
+                    + " x 10^0";
+        }
+
+        NotacaoCientifica nc =
+                normalizar(valor);
+
+        String mantissaFormatada =
+                BigDecimal
+                        .valueOf(
+                                nc.getMantissa()
+                        )
+                        .setScale(
+                                casasDecimais,
+                                RoundingMode.HALF_UP
+                        )
+                        .toPlainString();
+
+        return mantissaFormatada
+                + " x 10^"
+                + nc.getExpoente();
     }
 
     /**
-     * Trunca uma mantissa normalizada para a quantidade informada
-     * de algarismos significativos.
-     */
-    public double truncar(double mantissa, int algarismosSignificativos) {
-        validarAlgarismosSignificativos(algarismosSignificativos);
-        validarValorFinito(mantissa);
-
-        return BigDecimal.valueOf(mantissa)
-                .setScale(algarismosSignificativos, RoundingMode.DOWN)
-                .doubleValue();
-    }
-
-    /**
-     * Arredonda uma mantissa normalizada para a quantidade informada
-     * de algarismos significativos, usando HALF_UP.
-     */
-    public double arredondar(double mantissa, int algarismosSignificativos) {
-        validarAlgarismosSignificativos(algarismosSignificativos);
-        validarValorFinito(mantissa);
-
-        return BigDecimal.valueOf(mantissa)
-                .setScale(algarismosSignificativos, RoundingMode.HALF_UP)
-                .doubleValue();
-    }
-
-    /**
-     * Aplica a precisão escolhida à mantissa normalizada e reconstrói o valor.
+     * Formata um resultado com a quantidade
+     * de casas decimais escolhida.
      *
-     * @param valor valor original
-     * @param algarismosSignificativos quantidade de algarismos significativos (>= 1)
-     * @param metodo 1 = truncamento; 2 = arredondamento
+     * Valores muito pequenos são apresentados
+     * em notação científica para não aparecerem
+     * incorretamente como zero.
+     */
+    public String formatarResultado(
+            double valor,
+            int casasDecimais
+    ) {
+
+        validarCasasDecimais(
+                casasDecimais
+        );
+
+        if (Double.isNaN(valor)) {
+            return "não definido";
+        }
+
+        if (valor == 0.0) {
+
+            return BigDecimal.ZERO
+                    .setScale(casasDecimais)
+                    .toPlainString();
+        }
+
+        BigDecimal decimal =
+                BigDecimal.valueOf(valor);
+
+        BigDecimal valorFormatado =
+                decimal.setScale(
+                        casasDecimais,
+                        RoundingMode.HALF_UP
+                );
+
+        /*
+         * Se o valor não é zero, mas ficaria
+         * visualmente igual a zero, usa
+         * notação científica.
+         */
+        if (valorFormatado.compareTo(
+                BigDecimal.ZERO
+        ) == 0) {
+
+            return formatarNotacaoCientifica(
+                    valor,
+                    casasDecimais
+            );
+        }
+
+        return valorFormatado
+                .toPlainString();
+    }
+
+    /**
+     * Trunca o valor para a quantidade
+     * escolhida de casas decimais.
+     */
+    public double truncar(
+            double valor,
+            int casasDecimais
+    ) {
+
+        validarCasasDecimais(
+                casasDecimais
+        );
+
+        validarValorFinito(valor);
+
+        return BigDecimal
+                .valueOf(valor)
+                .setScale(
+                        casasDecimais,
+                        RoundingMode.DOWN
+                )
+                .doubleValue();
+    }
+
+    /**
+     * Arredonda o valor para a quantidade
+     * escolhida de casas decimais.
+     */
+    public double arredondar(
+            double valor,
+            int casasDecimais
+    ) {
+
+        validarCasasDecimais(
+                casasDecimais
+        );
+
+        validarValorFinito(valor);
+
+        return BigDecimal
+                .valueOf(valor)
+                .setScale(
+                        casasDecimais,
+                        RoundingMode.HALF_UP
+                )
+                .doubleValue();
+    }
+
+    /**
+     * Aplica o método de precisão escolhido.
+     * 1 = truncamento
+     * 2 = arredondamento
      */
     public double ajustarPrecisao(
             double valor,
-            int algarismosSignificativos,
+            int casasDecimais,
             int metodo
     ) {
-        validarAlgarismosSignificativos(algarismosSignificativos);
 
-        if (metodo != 1 && metodo != 2) {
-            throw new IllegalArgumentException("Método de precisão inválido.");
-        }
+        validarCasasDecimais(
+                casasDecimais
+        );
 
         validarValorFinito(valor);
 
-        if (valor == 0.0) {
-            return 0.0;
-        }
+        return switch (metodo) {
 
-        NotacaoCientifica nc = normalizar(valor);
+            case 1 ->
+                truncar(
+                        valor,
+                        casasDecimais
+                );
 
-        double mantissaAjustada = (metodo == 1)
-                ? truncar(nc.getMantissa(), algarismosSignificativos)
-                : arredondar(nc.getMantissa(), algarismosSignificativos);
+            case 2 ->
+                arredondar(
+                        valor,
+                        casasDecimais
+                );
 
-        int expoenteAjustado = nc.getExpoente();
-
-        // Ex.: 0.9999 arredondado pode virar 1.0; normalize novamente.
-        if (Math.abs(mantissaAjustada) >= 1.0) {
-            NotacaoCientifica novaNormalizacao = normalizar(mantissaAjustada);
-            mantissaAjustada = novaNormalizacao.getMantissa();
-            expoenteAjustado += novaNormalizacao.getExpoente();
-        }
-
-        return BigDecimal.valueOf(mantissaAjustada)
-                .scaleByPowerOfTen(expoenteAjustado)
-                .doubleValue();
+            default ->
+                throw new IllegalArgumentException(
+                        "Método de precisão inválido."
+                );
+        };
     }
 
-    private void validarAlgarismosSignificativos(int algarismosSignificativos) {
-        if (algarismosSignificativos < 1) {
+    /**
+     * Valida a quantidade de casas decimais.
+     */
+    private void validarCasasDecimais(
+            int casasDecimais
+    ) {
+
+        if (casasDecimais < 0) {
+
             throw new IllegalArgumentException(
-                    "A quantidade de algarismos significativos deve ser maior que zero."
+                    "A quantidade de casas decimais não pode ser negativa."
             );
         }
     }
 
-    private void validarValorFinito(double valor) {
+    /**
+     * Impede valores infinitos ou NaN.
+     */
+    private void validarValorFinito(
+            double valor
+    ) {
+
         if (!Double.isFinite(valor)) {
+
             throw new IllegalArgumentException(
                     "O valor deve ser um número finito."
             );

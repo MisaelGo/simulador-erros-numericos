@@ -6,7 +6,6 @@ package simuladorerrosnumericos;
  */
 public class Testes {
 
-    // Códigos usados para identificar os métodos.
     private static final int TRUNCAMENTO = 1;
     private static final int ARREDONDAMENTO = 2;
 
@@ -15,37 +14,46 @@ public class Testes {
     private final CalculadoraErro calculadoraErro;
 
     /**
-     * Inicializa as classes utilizadas nos testes.
+     * Inicializa as classes usadas nos testes.
      */
     public Testes() {
-        calculadora = new Calculadora();
-        precisaoNumerica = new PrecisaoNumerica();
-        calculadoraErro = new CalculadoraErro();
+
+        calculadora =
+                new Calculadora();
+
+        precisaoNumerica =
+                new PrecisaoNumerica();
+
+        calculadoraErro =
+                new CalculadoraErro();
     }
 
     /**
-     * Executa todos os exemplos em sequência.
+     * Executa todos os exemplos.
      */
-    public static void main(String[] args) {
+    public static void main(
+            String[] args
+    ) {
 
-        Testes testes = new Testes();
+        Testes testes =
+                new Testes();
 
         testes.testeSomaSimples();
+
         testes.testeCancelamentoSubtrativo();
+
         testes.testePropagacaoSomas();
     }
 
     /**
-     * Exemplo 1: soma simples.
-     *
-     * Soma dois números e aplica truncamento
-     * e arredondamento ao resultado.
+     * Exemplo 1:
+     * soma simples.
      */
     public void testeSomaSimples() {
 
-        // Dois valores com cinco casas decimais.
         double x = 12.34567;
         double y = 0.78901;
+
         int casasDecimais = 4;
 
         ResultadoTeste truncamento =
@@ -73,16 +81,14 @@ public class Testes {
     }
 
     /**
-     * Exemplo 2: cancelamento subtrativo.
-     *
-     * Primeiro aproxima x e y e depois realiza
-     * a subtração.
+     * Exemplo 2:
+     * cancelamento subtrativo.
      */
     public void testeCancelamentoSubtrativo() {
 
-        // Valores fornecidos pelo professor.
         double x = 0.76545;
         double y = 0.76541;
+
         int casasDecimais = 4;
 
         System.out.println(
@@ -90,11 +96,13 @@ public class Testes {
         );
 
         System.out.println(
-                "x original: " + x
+                "x original: "
+                + x
         );
 
         System.out.println(
-                "y original: " + y
+                "y original: "
+                + y
         );
 
         ResultadoTeste truncamento =
@@ -122,14 +130,13 @@ public class Testes {
     }
 
     /**
-     * Exemplo 3: propagação do erro em somas.
-     *
-     * Soma 0.56786 dez vezes e ajusta o resultado
-     * após cada operação.
+     * Exemplo 3:
+     * propagação do erro em somas sucessivas.
      */
     public void testePropagacaoSomas() {
 
         double parcela = 0.56786;
+
         int repeticoes = 10;
         int casasDecimais = 4;
 
@@ -164,7 +171,8 @@ public class Testes {
     }
 
     /**
-     * Executa a soma simples e ajusta o resultado.
+     * Executa a soma simples e aplica
+     * a precisão ao resultado.
      */
     private ResultadoTeste executarSoma(
             double x,
@@ -195,8 +203,8 @@ public class Testes {
     }
 
     /**
-     * Executa a subtração após aproximar
-     * separadamente os dois operandos.
+     * Aproxima x e y antes de realizar
+     * a subtração.
      */
     private ResultadoTeste executarSubtracao(
             double x,
@@ -211,7 +219,6 @@ public class Testes {
                         y
                 );
 
-        // Aproxima os operandos antes da subtração.
         double xAproximado =
                 precisaoNumerica
                         .ajustarPrecisao(
@@ -241,17 +248,29 @@ public class Testes {
 
         System.out.println(
                 "x aproximado: "
-                + xAproximado
+                + precisaoNumerica
+                        .formatarResultado(
+                                xAproximado,
+                                casasDecimais
+                        )
         );
 
         System.out.println(
                 "y aproximado: "
-                + yAproximado
+                + precisaoNumerica
+                        .formatarResultado(
+                                yAproximado,
+                                casasDecimais
+                        )
         );
 
         System.out.println(
                 "Resultado aproximado da subtração: "
-                + resultadoAproximado
+                + precisaoNumerica
+                        .formatarResultado(
+                                resultadoAproximado,
+                                casasDecimais
+                        )
         );
 
         return criarResultado(
@@ -262,8 +281,8 @@ public class Testes {
     }
 
     /**
-     * Executa as somas sucessivas e aplica o ajuste
-     * após cada nova soma.
+     * Executa as somas sucessivas e aplica
+     * a precisão após cada nova soma.
      */
     private ResultadoTeste executarSomasSucessivas(
             double parcela,
@@ -273,14 +292,9 @@ public class Testes {
             boolean mostrarEtapas
     ) {
 
-        // Valor de referência sem limitar a precisão.
         double resultadoExato =
                 parcela * repeticoes;
 
-        /*
-         * O exemplo começa em:
-         * parcela + parcela.
-         */
         double resultadoAproximado =
                 parcela;
 
@@ -292,7 +306,6 @@ public class Testes {
             );
         }
 
-        // Repete a soma até completar dez parcelas.
         for (int termo = 2;
                 termo <= repeticoes;
                 termo++) {
@@ -303,7 +316,6 @@ public class Testes {
                             parcela
                     );
 
-            // Limita novamente o acumulado após cada soma.
             resultadoAproximado =
                     precisaoNumerica
                             .ajustarPrecisao(
@@ -314,11 +326,21 @@ public class Testes {
 
             if (mostrarEtapas) {
 
-                System.out.printf(
-                        "Soma %d: %.10f -> %.10f%n",
-                        termo - 1,
-                        antesDoAjuste,
-                        resultadoAproximado
+                System.out.println(
+                        "Soma "
+                        + (termo - 1)
+                        + ": "
+                        + precisaoNumerica
+                                .formatarResultado(
+                                        antesDoAjuste,
+                                        casasDecimais
+                                )
+                        + " -> "
+                        + precisaoNumerica
+                                .formatarResultado(
+                                        resultadoAproximado,
+                                        casasDecimais
+                                )
                 );
             }
         }
@@ -331,7 +353,7 @@ public class Testes {
     }
 
     /**
-     * Calcula os erros e agrupa os dados de um teste.
+     * Calcula os erros de um teste.
      */
     private ResultadoTeste criarResultado(
             int metodo,
@@ -340,16 +362,18 @@ public class Testes {
     ) {
 
         double erroAbsoluto =
-                calculadoraErro.erroAbsoluto(
-                        resultadoExato,
-                        resultadoAproximado
-                );
+                calculadoraErro
+                        .erroAbsoluto(
+                                resultadoExato,
+                                resultadoAproximado
+                        );
 
         double erroRelativo =
-                calculadoraErro.erroRelativo(
-                        resultadoExato,
-                        resultadoAproximado
-                );
+                calculadoraErro
+                        .erroRelativo(
+                                resultadoExato,
+                                resultadoAproximado
+                        );
 
         return new ResultadoTeste(
                 nomeMetodo(metodo),
@@ -361,7 +385,7 @@ public class Testes {
     }
 
     /**
-     * Converte o código do método para texto.
+     * Retorna o nome do método.
      */
     private String nomeMetodo(
             int metodo
@@ -381,8 +405,7 @@ public class Testes {
     }
 
     /**
-     * Exibe a comparação entre truncamento
-     * e arredondamento.
+     * Exibe a comparação dos resultados.
      */
     private void exibirComparacao(
             String titulo,
@@ -392,7 +415,9 @@ public class Testes {
     ) {
 
         System.out.println(
-                "\n=== " + titulo + " ==="
+                "\n=== "
+                + titulo
+                + " ==="
         );
 
         System.out.println(
@@ -401,7 +426,7 @@ public class Testes {
         );
 
         System.out.printf(
-                "%-15s %18s %18s %18s %18s%n",
+                "%-15s %-22s %-22s %-22s %-25s%n",
                 "Método",
                 "Valor exato",
                 "Valor aproximado",
@@ -409,70 +434,83 @@ public class Testes {
                 "Erro relativo"
         );
 
-        exibirLinha(truncamento);
-        exibirLinha(arredondamento);
+        exibirLinha(
+                truncamento,
+                casasDecimais
+        );
+
+        exibirLinha(
+                arredondamento,
+                casasDecimais
+        );
     }
 
     /**
-     * Exibe uma linha da tabela de resultados.
+     * Exibe uma linha da tabela.
      */
     private void exibirLinha(
-            ResultadoTeste resultado
+            ResultadoTeste resultado,
+            int casasDecimais
     ) {
 
         System.out.printf(
-                "%-15s %18s %18s %18s %18s%n",
+                "%-15s %-22s %-22s %-22s %-25s%n",
                 resultado.metodo,
-                formatar(
-                        resultado.resultadoExato
+
+                precisaoNumerica
+                        .formatarResultado(
+                                resultado.resultadoExato,
+                                casasDecimais
+                        ),
+
+                precisaoNumerica
+                        .formatarResultado(
+                                resultado.resultadoAproximado,
+                                casasDecimais
+                        ),
+
+                precisaoNumerica
+                        .formatarResultado(
+                                resultado.erroAbsoluto,
+                                5
                 ),
-                formatar(
-                        resultado.resultadoAproximado
-                ),
-                formatar(
-                        resultado.erroAbsoluto
-                ),
+
                 formatarErroRelativo(
-                        resultado.erroRelativo
+                        resultado.erroRelativo,
+                        casasDecimais
                 )
         );
     }
 
     /**
-     * Formata valores em notação científica.
-     */
-    private String formatar(
-            double valor
-    ) {
-
-        return String.format(
-                "%.10e",
-                valor
-        );
-    }
-
-    /**
-     * Formata o erro relativo em valor decimal
-     * e porcentagem.
+     * Formata o erro relativo e a porcentagem.
      */
     private String formatarErroRelativo(
-            double valor
+            double valor,
+            int casasDecimais
     ) {
 
         if (Double.isNaN(valor)) {
             return "não definido";
         }
 
-        return String.format(
-                "%.6f (%.2f%%)",
-                valor,
-                valor * 100
-        );
+        return precisaoNumerica
+                .formatarResultado(
+                        valor,
+                        casasDecimais
+                )
+                + " ("
+                + String.format(
+                        "%."
+                        + casasDecimais
+                        + "f",
+                        valor * 100
+                )
+                + "%)";
     }
 
     /**
-     * Estrutura interna usada para armazenar
-     * o resultado de cada teste.
+     * Armazena o resultado de cada teste.
      */
     private static class ResultadoTeste {
 
@@ -489,13 +527,19 @@ public class Testes {
                 double erroAbsoluto,
                 double erroRelativo
         ) {
-            this.metodo = metodo;
+
+            this.metodo =
+                    metodo;
+
             this.resultadoExato =
                     resultadoExato;
+
             this.resultadoAproximado =
                     resultadoAproximado;
+
             this.erroAbsoluto =
                     erroAbsoluto;
+
             this.erroRelativo =
                     erroRelativo;
         }
