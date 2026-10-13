@@ -426,9 +426,9 @@ public class Testes {
         );
 
         System.out.printf(
-                "%-15s %-22s %-22s %-22s %-25s%n",
+                "%-15s %-26s %-22s %-22s %-25s%n",
                 "Método",
-                "Valor exato",
+                "Valor exato (sem ajuste)",
                 "Valor aproximado",
                 "Erro absoluto",
                 "Erro relativo"
@@ -454,14 +454,12 @@ public class Testes {
     ) {
 
         System.out.printf(
-                "%-15s %-22s %-22s %-22s %-25s%n",
+                "%-15s %-26s %-22s %-22s %-25s%n",
                 resultado.metodo,
 
-                precisaoNumerica
-                        .formatarResultado(
-                                resultado.resultadoExato,
-                                casasDecimais
-                        ),
+                formatarValorExato(
+                        resultado.resultadoExato
+                ),
 
                 precisaoNumerica
                         .formatarResultado(
@@ -479,6 +477,17 @@ public class Testes {
                         resultado.erroRelativo,
                         casasDecimais
                 )
+        );
+    }
+
+    /**
+     * Exibe o valor exato com mais casas para não esconder
+     * a diferença em relação ao valor aproximado.
+     */
+    private String formatarValorExato(double valor) {
+        return String.format(
+                "%.10f",
+                valor
         );
     }
 
